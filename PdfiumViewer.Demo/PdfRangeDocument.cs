@@ -233,6 +233,11 @@ namespace PdfiumViewer.Demo
             _document.DeletePage(TranslatePage(pageNumber));
         }
 
+        public PdfRotation GetPageRotation(int page)
+        {
+            return _document.GetPageRotation(TranslatePage(page));
+        }
+
         public void RotatePage(int pageNumber, PdfRotation rotation)
         {
             _document.RotatePage(TranslatePage(pageNumber), rotation);
@@ -286,6 +291,30 @@ namespace PdfiumViewer.Demo
         public Rectangle RectangleFromPdf(int page, RectangleF rect)
         {
             return _document.RectangleFromPdf(TranslatePage(page), rect);
+        }
+        public IList<PdfCharacterInformation> GetCharacterInformation(int page)
+        {
+            return _document.GetCharacterInformation(page);
+        }
+
+        public int GetCharacterIndexAtPosition(PdfPoint location, double xTolerance, double yTolerance)
+        {
+            return _document.GetCharacterIndexAtPosition(location, xTolerance, yTolerance);
+        }
+
+        public bool GetWordAtPosition(PdfPoint location, double xTolerance, double yTolerance, out PdfTextSpan span)
+        {
+            return _document.GetWordAtPosition(location, xTolerance, yTolerance, out span);
+        }
+
+        public int CountCharacters(int page)
+        {
+            return _document.CountCharacters(page);
+        }
+
+        public List<PdfRectangle> GetTextRectangles(int page, int startIndex, int count)
+        {
+            return _document.GetTextRectangles(page, startIndex, count);
         }
 
         private int TranslatePage(int page)

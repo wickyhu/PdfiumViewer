@@ -17,6 +17,21 @@ namespace PdfiumViewer
         private int _offset;
 
         /// <summary>
+        /// The matches of the current search.
+        /// </summary>
+        public PdfMatches Matches => _matches;
+
+        /// <summary>
+        /// Gets the number of matches for the current search.
+        /// </summary>
+        public int MatchCount => _matches?.Items?.Count ?? 0;
+
+        /// <summary>
+        /// The index of the currently selected match.
+        /// </summary>
+        public int Offset => _offset;
+
+        /// <summary>
         /// The renderer associated with the search manager.
         /// </summary>
         public PdfRenderer Renderer { get; }

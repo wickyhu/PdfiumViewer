@@ -19,6 +19,8 @@ namespace PdfiumViewer.Demo
 
             renderToBitmapsToolStripMenuItem.Enabled = false;
 
+            pdfViewer1.Renderer.ContextMenuStrip = pdfViewerContextMenu;
+
             pdfViewer1.Renderer.DisplayRectangleChanged += Renderer_DisplayRectangleChanged;
             pdfViewer1.Renderer.ZoomChanged += Renderer_ZoomChanged;
 
@@ -194,7 +196,8 @@ namespace PdfiumViewer.Demo
         {
             using (var form = new PrintPreviewDialog())
             {
-                form.Document = pdfViewer1.Document.CreatePrintDocument(pdfViewer1.DefaultPrintMode);
+                form.Document = pdfViewer1.Document.CreatePrintDocument(
+                    new PdfPrintSettings(pdfViewer1.DefaultPrintMode, 1.0));
                 form.ShowDialog(this);
             }
         }
@@ -278,15 +281,9 @@ namespace PdfiumViewer.Demo
 
         private void deleteCurrentPageToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // PdfRenderer does not support changes to the loaded document,
-            // so we fake it by reloading the document into the renderer.
-
             int page = pdfViewer1.Renderer.Page;
-            var document = pdfViewer1.Document;
-            pdfViewer1.Document = null;
-            document.DeletePage(page);
-            pdfViewer1.Document = document;
-            pdfViewer1.Renderer.Page = page;
+            pdfViewer1.Document.DeletePage(page);
+            pdfViewer1.Renderer.ReloadDocument();
         }
 
         private void rotate0ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -311,15 +308,9 @@ namespace PdfiumViewer.Demo
 
         private void Rotate(PdfRotation rotate)
         {
-            // PdfRenderer does not support changes to the loaded document,
-            // so we fake it by reloading the document into the renderer.
-
             int page = pdfViewer1.Renderer.Page;
-            var document = pdfViewer1.Document;
-            pdfViewer1.Document = null;
-            document.RotatePage(page, rotate);
-            pdfViewer1.Document = document;
-            pdfViewer1.Renderer.Page = page;
+            pdfViewer1.Document.RotatePage(page, rotate);
+            pdfViewer1.Renderer.ReloadDocument();
         }
 
         private void showRangeOfPagesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -331,8 +322,8 @@ namespace PdfiumViewer.Demo
                     pdfViewer1.Document = form.Document;
                 }
             }
-		}
-			
+        }
+
         private void informationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             PdfInformation info = pdfViewer1.Document.GetInformation();
@@ -347,7 +338,7 @@ namespace PdfiumViewer.Demo
             sz.AppendLine($"Modified Date: {info.ModificationDate}");
 
             MessageBox.Show(sz.ToString(), "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-		}	
+        }
 
         private void _getTextFromPage_Click(object sender, EventArgs e)
         {
@@ -377,6 +368,21 @@ namespace PdfiumViewer.Demo
             {
                 form.ShowDialog(this);
             }
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pdfViewer1.Renderer.CopySelection();
+        }
+
+        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            pdfViewer1.Renderer.SelectAll();
+        }
+
+        private void pdfViewerContextMenu_Opening(object sender, CancelEventArgs e)
+        {
+            copyToolStripMenuItem.Enabled = pdfViewer1.Renderer.IsTextSelected;
         }
     }
 }

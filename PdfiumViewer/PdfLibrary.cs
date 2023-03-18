@@ -23,7 +23,14 @@ namespace PdfiumViewer
 
         private PdfLibrary()
         {
-            NativeMethods.FPDF_AddRef();
+            //https://chromium.googlesource.com/v8/v8/+/branch-heads/6.8/samples/hello-world.cc
+
+            //try
+            //{
+            //    NativeMethods.FPDF_InitEmbeddedLibraries();
+            //}
+            //catch { } 
+            NativeMethods.FPDF_InitLibrary();
         }
 
         ~PdfLibrary()
@@ -42,7 +49,7 @@ namespace PdfiumViewer
         {
             if (!_disposed)
             {
-                NativeMethods.FPDF_Release();
+                NativeMethods.FPDF_DestroyLibrary();
 
                 _disposed = true;
             }

@@ -289,7 +289,7 @@ namespace PdfiumViewer
         /// <returns>The rendered image.</returns>
         public Image Render(int page, int width, int height, float dpiX, float dpiY, PdfRenderFlags flags)
         {
-            return Render(page, width, height, dpiX, dpiY, 0, flags);
+            return Render(page, width, height, dpiX, dpiY, 0, flags & ~PdfRenderFlags.Annotations, (flags & PdfRenderFlags.Annotations) != 0);
         }
 
         /// <summary>
@@ -304,6 +304,23 @@ namespace PdfiumViewer
         /// <param name="flags">Flags used to influence the rendering.</param>
         /// <returns>The rendered image.</returns>
         public Image Render(int page, int width, int height, float dpiX, float dpiY, PdfRotation rotate, PdfRenderFlags flags)
+        {
+            return Render(page, width, height, dpiX, dpiY, rotate, flags, false);
+        }
+
+        /// <summary>
+        /// Renders a page of the PDF document to an image.
+        /// </summary>
+        /// <param name="page">Number of the page to render.</param>
+        /// <param name="width">Width of the rendered image.</param>
+        /// <param name="height">Height of the rendered image.</param>
+        /// <param name="dpiX">Horizontal DPI.</param>
+        /// <param name="dpiY">Vertical DPI.</param>
+        /// <param name="rotate">Rotation.</param>
+        /// <param name="flags">Flags used to influence the rendering.</param>
+        /// <param name="drawFormFields">Draw form fields.</param>
+        /// <returns>The rendered image.</returns>
+        public Image Render(int page, int width, int height, float dpiX, float dpiY, PdfRotation rotate, PdfRenderFlags flags, bool drawFormFields)
         {
             if (_disposed)
                 throw new ObjectDisposedException(GetType().Name);
@@ -336,7 +353,7 @@ namespace PdfiumViewer
                         0, 0, width, height,
                         (int)rotate,
                         FlagsToFPDFFlags(flags),
-                        (flags & PdfRenderFlags.Annotations) != 0
+                        drawFormFields
                     );
 
                     if (!success)
@@ -505,12 +522,59 @@ namespace PdfiumViewer
         }
 
         /// <summary>
+        /// Get the character index at or nearby a specific position. 
+        /// </summary>
+        /// <param name="page">The page to get the character index from</param>
+        /// <param name="x">X position</param>
+        /// <param name="y">Y position</param>
+        /// <param name="xTolerance">An x-axis tolerance value for character hit detection, in point unit.</param>
+        /// <param name="yTolerance">A y-axis tolerance value for character hit detection, in point unit.</param>
+        /// <returns>The zero-based index of the character at, or nearby the point specified by parameter x and y. If there is no character at or nearby the point, it will return -1.</returns>
+        public int GetCharacterIndexAtPosition(PdfPoint location, double xTolerance, double yTolerance)
+        {
+            return _file.GetCharIndexAtPos(location, xTolerance, yTolerance);
+        }
+
+        /// <summary>
+        /// Get the full word at or nearby a specific position
+        /// </summary>
+        /// <param name="location">The location to inspect</param>
+        /// <param name="xTolerance">An x-axis tolerance value for character hit detection, in point unit.</param>
+        /// <param name="yTolerance">A y-axis tolerance value for character hit detection, in point unit.</param>
+        /// <param name="span">The location of the found word, if any</param>
+        /// <returns>A value indicating whether a word was found at the specified location</returns>
+        public bool GetWordAtPosition(PdfPoint location, double xTolerance, double yTolerance, out PdfTextSpan span)
+        {
+            return _file.GetWordAtPosition(location, xTolerance, yTolerance, out span);
+        }
+
+        /// <summary>
+        /// Get number of characters in a page.
+        /// </summary>
+        /// <param name="page">The page to get the character count from</param>
+        /// <returns>Number of characters in the page. Generated characters, like additional space characters, new line characters, are also counted.</returns>
+        public int CountCharacters(int page)
+        {
+            return _file.CountChars(page);
+        }
+
+        /// <summary>
+        /// Gets the rectangular areas occupied by a segment of text
+        /// </summary>
+        /// <param name="page">The page to get the rectangles from</param>
+        /// <returns>The rectangular areas occupied by a segment of text</returns>
+        public List<PdfRectangle> GetTextRectangles(int page, int startIndex, int count)
+        {
+            return _file.GetTextRectangles(page, startIndex, count);
+        }
+
+        /// <summary>
         /// Creates a <see cref="PrintDocument"/> for the PDF document.
         /// </summary>
         /// <returns></returns>
         public PrintDocument CreatePrintDocument()
         {
-            return CreatePrintDocument(PdfPrintMode.CutMargin);
+            return CreatePrintDocument(PdfPrintSettings.DefaultPrinterSettings);
         }
 
         /// <summary>
@@ -521,7 +585,7 @@ namespace PdfiumViewer
         /// <returns></returns>
         public PrintDocument CreatePrintDocument(PdfPrintMode printMode)
         {
-            return CreatePrintDocument(new PdfPrintSettings(printMode, null));
+            return CreatePrintDocument(new PdfPrintSettings(printMode));
         }
 
         /// <summary>
@@ -553,6 +617,17 @@ namespace PdfiumViewer
         {
             _file.DeletePage(page);
             _pageSizes.RemoveAt(page);
+            PageSizes = new ReadOnlyCollection<SizeF>(_pageSizes);
+        }
+
+        /// <summary>
+        /// Get the current rotation of the page.
+        /// </summary>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public PdfRotation GetPageRotation(int page)
+        {
+            return _file.GetPageRotation(page);
         }
 
         /// <summary>
@@ -564,6 +639,7 @@ namespace PdfiumViewer
         {
             _file.RotatePage(page, rotation);
             _pageSizes[page] = _file.GetPDFDocInfo(page);
+            PageSizes = new ReadOnlyCollection<SizeF>(_pageSizes);
         }
 
         /// <summary>
@@ -597,6 +673,16 @@ namespace PdfiumViewer
 
                 _disposed = true;
             }
+        }
+
+        /// <summary>
+        /// Get detailed information all characters on the page.
+        /// </summary>
+        /// <param name="page">The page to get the information for.</param>
+        /// <returns>The character information.</returns>
+        public IList<PdfCharacterInformation> GetCharacterInformation(int page)
+        {
+            return _file.GetCharacterInformation(page);
         }
     }
 }

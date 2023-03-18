@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Drawing;
 
 #pragma warning disable 1591
 
@@ -18,19 +19,27 @@ namespace PdfiumViewer
         // threads, even when there are multiple AppDomain's in play.
         private static readonly string LockString = String.Intern("e362349b-001d-4cb2-bf55-a71606a3e36f");
 
-        public static void FPDF_AddRef()
+        public static void FPDF_InitLibrary()
         {
             lock (LockString)
             {
-                Imports.FPDF_AddRef();
+                Imports.FPDF_InitLibrary();
             }
         }
 
-        public static void FPDF_Release()
+        public static void FPDF_InitEmbeddedLibraries()
         {
             lock (LockString)
             {
-                Imports.FPDF_Release();
+                Imports.FPDF_InitEmbeddedLibraries();
+            }
+        }
+
+        public static void FPDF_DestroyLibrary()
+        {
+            lock (LockString)
+            {
+                Imports.FPDF_DestroyLibrary();
             }
         }
 
@@ -71,6 +80,22 @@ namespace PdfiumViewer
             lock (LockString)
             {
                 return Imports.FPDF_GetDocPermissions(document);
+            }
+        }
+
+        public static FPDF_FORMTYPES FPDF_GetFormType(IntPtr document)
+        {
+            lock (LockString)
+            {
+                return Imports.FPDF_GetFormType(document);
+            }
+        }
+
+        public static int FPDF_LoadXFA(IntPtr document)
+        {
+            lock (LockString)
+            {
+                return Imports.FPDF_LoadXFA(document);
             }
         }
 
@@ -258,6 +283,14 @@ namespace PdfiumViewer
             }
         }
 
+        public static double FPDFText_GetFontSize(IntPtr page, int index)
+        {
+            lock (LockString)
+            {
+                return Imports.FPDFText_GetFontSize(page, index);
+            }
+        }
+
         public static int FPDFText_GetSchResultIndex(IntPtr handle)
         {
             lock (LockString)
@@ -290,11 +323,56 @@ namespace PdfiumViewer
             }
         }
 
+        public static int FPDFText_GetCharIndexAtPos(IntPtr page, double x, double y, double xTolerance, double yTolerance)
+        {
+            lock (LockString)
+            {
+                var idx = Imports.FPDFText_GetCharIndexAtPos(page, x, y, xTolerance, yTolerance);
+                if (idx == -3)
+                    throw new PdfException((PdfError)Imports.FPDF_GetLastError());
+                return idx;
+            }
+        }
+
         public static int FPDFText_CountChars(IntPtr page)
         {
             lock (LockString)
             {
                 return Imports.FPDFText_CountChars(page);
+            }
+        }
+
+        public static List<PdfRectangle> FPDFText_GetRectangles(IntPtr page, int pageIndex, int startIndex, int characterCount)
+        {
+            lock (LockString)
+            {
+                // GetRect uses internal state set by CountRects, so we should call them within the same lock
+
+                var count = Imports.FPDFText_CountRects(page, startIndex, characterCount);
+                var rectangles = new List<PdfRectangle>(count);
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (!Imports.FPDFText_GetRect(page, i, out var left, out var top, out var right, out var bottom))
+                        throw new PdfException((PdfError)Imports.FPDF_GetLastError());
+
+                    rectangles.Add(new PdfRectangle(pageIndex, new RectangleF(
+                        (float)left,
+                        (float)top,
+                        (float)(right - left),
+                        (float)(bottom - top)
+                    )));
+                }
+
+                return rectangles;
+            }
+        }
+
+        public static char FPDFText_GetUnicode(IntPtr page, int index)
+        {
+            lock (LockString)
+            {
+                return Imports.FPDFText_GetUnicode(page, index);
             }
         }
 
@@ -330,11 +408,11 @@ namespace PdfiumViewer
             }
         }
 
-        public static uint FPDFDest_GetPageIndex(IntPtr document, IntPtr dest)
+        public static uint FPDFDest_GetDestPageIndex(IntPtr document, IntPtr dest)
         {
             lock (LockString)
             {
-                return Imports.FPDFDest_GetPageIndex(document, dest);
+                return Imports.FPDFDest_GetDestPageIndex(document, dest);
             }
         }
 
@@ -456,6 +534,14 @@ namespace PdfiumViewer
         }
 
         #region Save / Edit Methods
+
+        public static PdfRotation FPDFPage_GetRotation(IntPtr page)
+        {
+            lock (LockString)
+            {
+                return (PdfRotation)Imports.FPDFPage_GetRotation(page);
+            }
+        }
 
         public static void FPDFPage_SetRotation(IntPtr page, PdfRotation rotation)
         {
@@ -592,10 +678,13 @@ namespace PdfiumViewer
         private static class Imports
         {
             [DllImport("pdfium.dll")]
-            public static extern void FPDF_AddRef();
+            public static extern void FPDF_InitLibrary();
 
             [DllImport("pdfium.dll")]
-            public static extern void FPDF_Release();
+            public static extern void FPDF_InitEmbeddedLibraries();
+
+            [DllImport("pdfium.dll")]
+            public static extern void FPDF_DestroyLibrary();
 
             [DllImport("pdfium.dll", CharSet = CharSet.Ansi)]            
             public static extern IntPtr FPDF_LoadCustomDocument([MarshalAs(UnmanagedType.LPStruct)]FPDF_FILEACCESS access, string password);
@@ -615,6 +704,12 @@ namespace PdfiumViewer
             [DllImport("pdfium.dll")]
             public static extern uint FPDF_GetDocPermissions(IntPtr document);
 
+            [DllImport("pdfium.dll")]
+            public static extern FPDF_FORMTYPES FPDF_GetFormType(IntPtr document);
+
+            [DllImport("pdfium.dll")]
+            public static extern int FPDF_LoadXFA(IntPtr document);
+            
             [DllImport("pdfium.dll")]
             public static extern IntPtr FPDFDOC_InitFormFillEnvironment(IntPtr document, FPDF_FORMFILLINFO formInfo);
 
@@ -685,6 +780,9 @@ namespace PdfiumViewer
             public static extern IntPtr FPDFText_FindStart(IntPtr page, byte[] findWhat, FPDF_SEARCH_FLAGS flags, int start_index);
 
             [DllImport("pdfium.dll")]
+            public static extern double FPDFText_GetFontSize(IntPtr page, int index);
+
+            [DllImport("pdfium.dll")]
             public static extern int FPDFText_GetSchResultIndex(IntPtr handle);
 
             [DllImport("pdfium.dll")]
@@ -697,7 +795,19 @@ namespace PdfiumViewer
             public static extern void FPDFText_GetCharBox(IntPtr page, int index, out double left, out double right, out double bottom, out double top);
 
             [DllImport("pdfium.dll")]
+            public static extern int FPDFText_GetCharIndexAtPos(IntPtr page, double x, double y, double xTolerance, double yTolerance);
+
+            [DllImport("pdfium.dll")]
             public static extern int FPDFText_CountChars(IntPtr page);
+
+            [DllImport("pdfium.dll")]
+            public static extern int FPDFText_CountRects(IntPtr page, int startIndex, int count);
+
+            [DllImport("pdfium.dll")]
+            public static extern bool FPDFText_GetRect(IntPtr page, int index, out double left, out double top, out double right, out double bottom);
+
+            [DllImport("pdfium.dll", CharSet = CharSet.Unicode)]
+            public static extern char FPDFText_GetUnicode(IntPtr page, int index);
 
             [DllImport("pdfium.dll")]
             public static extern bool FPDFText_FindNext(IntPtr handle);
@@ -712,7 +822,7 @@ namespace PdfiumViewer
             public static extern IntPtr FPDFLink_GetDest(IntPtr document, IntPtr link);
 
             [DllImport("pdfium.dll")]
-            public static extern uint FPDFDest_GetPageIndex(IntPtr document, IntPtr dest);
+            public static extern uint FPDFDest_GetDestPageIndex(IntPtr document, IntPtr dest);
 
             [DllImport("pdfium.dll")]
             public static extern bool FPDFLink_GetAnnotRect(IntPtr linkAnnot, FS_RECTF rect);
@@ -806,6 +916,26 @@ namespace PdfiumViewer
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public class IPDF_JSPLATFORM
+        {
+            public int version = 2;
+            private IntPtr app_alert;
+            private IntPtr app_beep;
+            private IntPtr app_response;
+            private IntPtr Doc_getFilePath;
+            private IntPtr Doc_mail;
+            private IntPtr Doc_print;
+            private IntPtr Doc_submitForm;
+            private IntPtr Doc_gotoPage;
+            private IntPtr Field_browse;
+
+            private IntPtr m_pFormfillinfo;
+            private IntPtr m_isolate;
+            uint m_v8EmbedderSlot;
+        }
+
+            
+        [StructLayout(LayoutKind.Sequential)]
         public class FPDF_FORMFILLINFO
         {
             public int version;
@@ -840,9 +970,10 @@ namespace PdfiumViewer
 
             private IntPtr FFI_DoGoToAction;
 
-            private IntPtr m_pJsPlatform;
+            public IntPtr m_pJsPlatform;
 
             // XFA support i.e. version 2
+            public int xfa_disabled;
 
             private IntPtr FFI_DisplayCaret;
 
@@ -873,6 +1004,8 @@ namespace PdfiumViewer
             private IntPtr FFI_PostRequestURL;
 
             private IntPtr FFI_PutRequestURL;
+
+            private IntPtr FFI_OnFocusChange;
         }
 
         public enum FPDF_UNSP
@@ -958,6 +1091,14 @@ namespace PdfiumViewer
             FPDF_INCREMENTAL = 1,
             FPDF_NO_INCREMENTAL = 2,
             FPDF_REMOVE_SECURITY = 3
+        }
+
+        public enum FPDF_FORMTYPES
+        {
+            FORMTYPE_NONE = 0, // Document contains no forms
+            FORMTYPE_ACRO_FORM = 1, // Forms are specified using AcroForm spec
+            FORMTYPE_XFA_FULL = 2,  // Forms are specified using entire XFA spec
+            FORMTYPE_XFA_FOREGROUND = 3  // Forms are specified using the XFAF subset of XFA spec 
         }
 
         [StructLayout(LayoutKind.Sequential)]
