@@ -27,13 +27,21 @@ namespace PdfiumViewer
             }
         }
 
-        public static void FPDF_InitEmbeddedLibraries()
+        public static void FPDF_InitLibraryWithConfig(FPDF_LIBRARY_CONFIG config)
         {
             lock (LockString)
             {
-                Imports.FPDF_InitEmbeddedLibraries();
+                Imports.FPDF_InitLibraryWithConfig(config);
             }
         }
+
+        //public static void FPDF_InitEmbeddedLibraries()
+        //{
+        //    lock (LockString)
+        //    {
+        //        Imports.FPDF_InitEmbeddedLibraries();
+        //    }
+        //}
 
         public static void FPDF_DestroyLibrary()
         {
@@ -681,7 +689,10 @@ namespace PdfiumViewer
             public static extern void FPDF_InitLibrary();
 
             [DllImport("pdfium.dll")]
-            public static extern void FPDF_InitEmbeddedLibraries();
+            public static extern void FPDF_InitLibraryWithConfig(FPDF_LIBRARY_CONFIG config);
+
+            //[DllImport("pdfium.dll")]
+            //public static extern void FPDF_InitEmbeddedLibraries();
 
             [DllImport("pdfium.dll")]
             public static extern void FPDF_DestroyLibrary();
@@ -916,6 +927,15 @@ namespace PdfiumViewer
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public class FPDF_LIBRARY_CONFIG
+        {
+            public int version = 2;
+            public IntPtr m_pUserFontPaths = IntPtr.Zero;
+            public IntPtr m_pIsolate = IntPtr.Zero;
+            public uint m_v8EmbedderSlot = 0;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         public class IPDF_JSPLATFORM
         {
             public int version = 2;
@@ -934,7 +954,6 @@ namespace PdfiumViewer
             uint m_v8EmbedderSlot;
         }
 
-            
         [StructLayout(LayoutKind.Sequential)]
         public class FPDF_FORMFILLINFO
         {

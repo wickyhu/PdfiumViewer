@@ -23,13 +23,15 @@ namespace PdfiumViewer
 
         private PdfLibrary()
         {
-            //https://chromium.googlesource.com/v8/v8/+/branch-heads/6.8/samples/hello-world.cc
+            //https://pdfium.googlesource.com/pdfium/+/refs/heads/main/samples/simple_no_v8.c
+            //https://pdfium.googlesource.com/pdfium/+/refs/heads/main/samples/simple_with_v8.cc
 
             //try
             //{
             //    NativeMethods.FPDF_InitEmbeddedLibraries();
             //}
             //catch { } 
+
             NativeMethods.FPDF_InitLibrary();
         }
 
