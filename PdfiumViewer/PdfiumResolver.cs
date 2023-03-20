@@ -4,8 +4,14 @@ using System.Text;
 
 namespace PdfiumViewer
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class PdfiumResolver
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public static event PdfiumResolveEventHandler Resolve;
 
         private static void OnResolve(PdfiumResolveEventArgs e)

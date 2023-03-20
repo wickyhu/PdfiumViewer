@@ -455,6 +455,10 @@ namespace PdfiumViewer
             UpdateScrollbars();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnKeyDown(KeyEventArgs e)
         {
             switch ((e.KeyData) & Keys.KeyCode)
@@ -473,6 +477,9 @@ namespace PdfiumViewer
             base.OnKeyDown(e);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void SelectAll()
         {
             _textSelectionState = new TextSelectionState()
@@ -486,6 +493,9 @@ namespace PdfiumViewer
             Invalidate();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void SelectCurrentPage()
         {
             _textSelectionState = new TextSelectionState()
@@ -499,6 +509,9 @@ namespace PdfiumViewer
             Invalidate();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void CopySelection()
         {
             var text = SelectedText;
@@ -524,6 +537,9 @@ namespace PdfiumViewer
             ReloadDocument();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void ReloadDocument()
         {
             _maxWidth = 0;
@@ -937,6 +953,10 @@ namespace PdfiumViewer
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
@@ -947,6 +967,10 @@ namespace PdfiumViewer
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnMouseDoubleClick(MouseEventArgs e)
         {
             base.OnMouseDoubleClick(e);

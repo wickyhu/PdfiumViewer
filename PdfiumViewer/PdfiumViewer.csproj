@@ -143,9 +143,6 @@
     <EmbeddedResource Include="PasswordForm.resx">
       <DependentUpon>PasswordForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="PdfViewer.nl.resx">
-      <DependentUpon>PdfViewer.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="PdfViewer.resx">
       <DependentUpon>PdfViewer.cs</DependentUpon>
       <SubType>Designer</SubType>

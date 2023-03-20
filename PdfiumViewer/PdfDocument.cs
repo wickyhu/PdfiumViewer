@@ -524,9 +524,7 @@ namespace PdfiumViewer
         /// <summary>
         /// Get the character index at or nearby a specific position. 
         /// </summary>
-        /// <param name="page">The page to get the character index from</param>
-        /// <param name="x">X position</param>
-        /// <param name="y">Y position</param>
+        /// <param name="location">position</param>
         /// <param name="xTolerance">An x-axis tolerance value for character hit detection, in point unit.</param>
         /// <param name="yTolerance">A y-axis tolerance value for character hit detection, in point unit.</param>
         /// <returns>The zero-based index of the character at, or nearby the point specified by parameter x and y. If there is no character at or nearby the point, it will return -1.</returns>
@@ -562,6 +560,8 @@ namespace PdfiumViewer
         /// Gets the rectangular areas occupied by a segment of text
         /// </summary>
         /// <param name="page">The page to get the rectangles from</param>
+        /// <param name="startIndex"></param>
+        /// <param name="count"></param>
         /// <returns>The rectangular areas occupied by a segment of text</returns>
         public List<PdfRectangle> GetTextRectangles(int page, int startIndex, int count)
         {
