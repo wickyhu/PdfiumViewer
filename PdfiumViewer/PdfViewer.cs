@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
@@ -44,6 +45,115 @@ namespace PdfiumViewer
         public PdfRenderer Renderer
         {
             get { return _renderer; }
+        }
+
+        /// <summary>
+        /// Return current focused page 
+        /// </summary>
+        public int CurPage
+        {
+            get { return _document == null || _renderer == null ? 0 : _renderer.Page; }
+        }
+       
+        /// <summary>
+        /// Return page count
+        /// </summary>
+        public int PageCount
+        {
+            get { return _document == null ? 0 : _document.PageCount; }
+        }
+
+        /// <summary>
+        /// Return document information
+        /// </summary>
+        public PdfInformation DocumentInfo
+        {
+            get { return _document == null ? null : _document.GetInformation(); }
+        }
+
+        public void Open(string path)
+        {
+            Document = PdfDocument.Load(path);
+        }
+
+        public void Open(Stream stream)
+        {
+            Document = PdfDocument.Load(stream);
+            OnAfterDocumentLoaded(null);
+        }
+
+        public event EventHandler AfterDocumentLoaded;
+
+        protected virtual void OnAfterDocumentLoaded(EventArgs e)
+        {
+            var ev = AfterDocumentLoaded;
+
+            if (ev != null)
+                ev(this, e);
+        }
+
+        public void Close()
+        {
+            if (_document != null)
+            {
+                _document.Dispose();
+            }
+        }
+
+        public void GoToPage(int page)
+        {
+            if (_document == null || _renderer == null)
+                return;
+            _renderer.Page = page;
+        }
+
+        public int ZoomLevel
+        {
+            get { return _document == null || _renderer == null ? 0 : (int)(_renderer.Zoom * 100.0); }
+            set
+            {
+                if (_document == null || _renderer == null) return;
+                _renderer.Zoom = value / 100.0;
+            }
+        }
+
+        public void RotateLeft()
+        {
+            _renderer?.RotateLeft();
+        }
+
+        public void RotateRight()
+        {
+            _renderer?.RotateRight();
+        }
+
+        PdfSearchManager _searchManager = null;
+        public bool FindFirst(string text, bool matchCase = false, bool matchWholeWord = false)
+        {
+            if (Renderer == null) 
+                return false;
+
+            if (_searchManager == null)
+            {
+                _searchManager = new PdfSearchManager(Renderer);
+                _searchManager.HighlightAllMatches = true;
+                _searchManager.MatchCase = matchCase;
+                _searchManager.MatchWholeWord = matchWholeWord;
+            }
+            else
+            {
+                _searchManager.Reset();
+            }
+            return _searchManager.Search(text);
+        }
+
+        public bool FindNext(bool forward)
+        {
+            if (Renderer == null)
+                return false;
+            if (_searchManager == null)
+                return false;
+            return _searchManager.FindNext(forward);
         }
 
         /// <summary>

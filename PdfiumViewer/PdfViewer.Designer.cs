@@ -43,6 +43,7 @@ namespace PdfiumViewer
             this._bookmarks = new PdfiumViewer.NativeTreeView();
             this._renderer = new PdfiumViewer.PdfRenderer();
             this._toolStrip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._container)).BeginInit();
             this._container.Panel1.SuspendLayout();
             this._container.Panel2.SuspendLayout();
             this._container.SuspendLayout();
@@ -122,6 +123,7 @@ namespace PdfiumViewer
             // 
             // _renderer
             // 
+            this._renderer.BackColor = System.Drawing.SystemColors.ControlLight;
             this._renderer.Cursor = System.Windows.Forms.Cursors.Default;
             resources.ApplyResources(this._renderer, "_renderer");
             this._renderer.Name = "_renderer";
@@ -141,6 +143,7 @@ namespace PdfiumViewer
             this._toolStrip.PerformLayout();
             this._container.Panel1.ResumeLayout(false);
             this._container.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this._container)).EndInit();
             this._container.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

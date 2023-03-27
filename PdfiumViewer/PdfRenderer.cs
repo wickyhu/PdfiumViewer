@@ -78,9 +78,9 @@ namespace PdfiumViewer
                     {
                         // If more than 50% of the page is hidden, return the previous page.
 
-                        int hidden = pageCache.Bottom - bottom;
-                        if (hidden > 0 && (double)hidden / pageCache.Height > 0.5 && page > 0)
-                            return page - 1;
+                        //int hidden = pageCache.Bottom - bottom;
+                        //if (hidden > 0 && (double)hidden / pageCache.Height > 0.5 && page > 0)
+                        //    return page - 1;
 
                         return page;
                     }
@@ -515,6 +515,7 @@ namespace PdfiumViewer
         public void CopySelection()
         {
             var text = SelectedText;
+            if (text == null) return;
             if (text.Length > 0)
                 Clipboard.SetText(text);
         }
