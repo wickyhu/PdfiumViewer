@@ -69,7 +69,7 @@ namespace PdfiumViewer
                     return 0;
 
                 int top = -DisplayRectangle.Top;
-                int bottom = top + GetScrollClientArea().Height;
+                //int bottom = top + GetScrollClientArea().Height;
 
                 for (int page = 0; page < Document.PageSizes.Count; page++)
                 {

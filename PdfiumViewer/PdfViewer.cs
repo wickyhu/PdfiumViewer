@@ -100,6 +100,16 @@ namespace PdfiumViewer
             }
         }
 
+        public event EventHandler DisplayRectangleChanged;
+
+        protected virtual void OnDisplayRectangleChanged(EventArgs e)
+        {
+            var ev = DisplayRectangleChanged;
+
+            if (ev != null)
+                ev(this, e);
+        }
+
         public void GoToPage(int page)
         {
             if (_document == null || _renderer == null)
@@ -351,6 +361,11 @@ namespace PdfiumViewer
         private void _renderer_LinkClick(object sender, LinkClickEventArgs e)
         {
             OnLinkClick(e);
+        }
+
+        private void _renderer_DisplayRectangleChanged(object sender, EventArgs e)
+        {
+            OnDisplayRectangleChanged(e);
         }
     }
 }
