@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 namespace PdfiumViewer
 {
     /// <summary>
@@ -369,3 +371,5 @@ namespace PdfiumViewer
         }
     }
 }
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
