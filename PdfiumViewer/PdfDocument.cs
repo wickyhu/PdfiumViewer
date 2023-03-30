@@ -305,7 +305,7 @@ namespace PdfiumViewer
         /// <returns>The rendered image.</returns>
         public Image Render(int page, int width, int height, float dpiX, float dpiY, PdfRotation rotate, PdfRenderFlags flags)
         {
-            return Render(page, width, height, dpiX, dpiY, rotate, flags, false);
+            return Render(page, width, height, dpiX, dpiY, rotate, flags, _file.IsXfaForm);
         }
 
         /// <summary>

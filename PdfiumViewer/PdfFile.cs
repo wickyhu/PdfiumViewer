@@ -17,8 +17,11 @@ namespace PdfiumViewer
         private IntPtr _document;
         private IntPtr _form;
         private bool _disposed;
-        private NativeMethods.FPDF_FORMFILLINFO _formCallbacks;
-        private GCHandle _formCallbacksHandle;
+        private NativeMethods.FPDF_FORMFILLINFO _formFillInfo;
+        private GCHandle _formFillInfoHandle;
+        private FPDF_FORMTYPES _formType;
+        private NativeMethods.IPDF_JSPLATFORM _jsPlatForm;
+        private GCHandle _jsPlatFormHandle;
         private readonly int _id;
         private Stream _stream;
 
@@ -148,25 +151,60 @@ namespace PdfiumViewer
             NativeMethods.FPDF_SaveAsCopy(_document, stream, NativeMethods.FPDF_SAVE_FLAGS.FPDF_NO_INCREMENTAL);
         }
 
+        public bool IsXfaForm
+        {
+            get
+            {
+                return _formType == FPDF_FORMTYPES.FORMTYPE_XFA_FULL || _formType == FPDF_FORMTYPES.FORMTYPE_XFA_FOREGROUND;
+            }
+        }
+
         protected void LoadDocument(IntPtr document)
         {
+            //refer to sample below
+            //https://pdfium.googlesource.com/pdfium/+/master/samples/pdfium_test.cc
+
             _document = document;
 
             NativeMethods.FPDF_GetDocPermissions(_document);
 
-            _formCallbacks = new NativeMethods.FPDF_FORMFILLINFO();
-            _formCallbacksHandle = GCHandle.Alloc(_formCallbacks, GCHandleType.Pinned);
+            _formFillInfo = new NativeMethods.FPDF_FORMFILLINFO();
+            _formFillInfoHandle = GCHandle.Alloc(_formFillInfo, GCHandleType.Pinned);
 
             // Depending on whether XFA support is built into the PDFium library, the version
             // needs to be 1 or 2. We don't really care, so we just try one or the other.
+            //for (int i = 1; i <= 2; i++)
+            //{
+            //    _formCallbacks.version = i;
 
-            for (int i = 1; i <= 2; i++)
+            //    _form = NativeMethods.FPDFDOC_InitFormFillEnvironment(_document, _formCallbacks);
+            //    if (_form != IntPtr.Zero)
+            //        break;
+            //}
+
+            _formType = NativeMethods.FPDF_GetFormType(_document);
+            if (IsXfaForm)
             {
-                _formCallbacks.version = i;
+                _formFillInfo.version = 2;
+                _formFillInfo.xfa_disabled = 0;
 
-                _form = NativeMethods.FPDFDOC_InitFormFillEnvironment(_document, _formCallbacks);
-                if (_form != IntPtr.Zero)
-                    break;
+                _jsPlatForm = new NativeMethods.IPDF_JSPLATFORM();
+                _jsPlatForm.version = 2;
+                _jsPlatFormHandle = GCHandle.Alloc(_jsPlatForm, GCHandleType.Pinned);
+                _formFillInfo.m_pJsPlatform = GCHandle.ToIntPtr(_jsPlatFormHandle);
+            }
+            else
+            {
+                _formFillInfo.version = 1;
+                _formFillInfo.xfa_disabled = 1;
+            }
+            _form = NativeMethods.FPDFDOC_InitFormFillEnvironment(_document, _formFillInfo);
+
+            //int docType = (int)FPDF_DOCYPES.DOCTYPE_PDF;
+            //if (NativeMethods.FPDF_HasXFAField(_document, ref docType) > 0 && docType != (int)FPDF_DOCYPES.DOCTYPE_PDF)
+            if(IsXfaForm)
+            {
+                var result = NativeMethods.FPDF_LoadXFA(_document);
             }
 
             NativeMethods.FPDF_SetFormFieldHighlightColor(_form, 0, 0xFFE4DD);
@@ -702,8 +740,13 @@ namespace PdfiumViewer
                     _document = IntPtr.Zero;
                 }
 
-                if (_formCallbacksHandle.IsAllocated)
-                    _formCallbacksHandle.Free();
+                if (_formFillInfoHandle.IsAllocated)
+                    _formFillInfoHandle.Free();
+
+                if (_jsPlatFormHandle != null && _jsPlatFormHandle.IsAllocated)
+                {
+                    _jsPlatFormHandle.Free();
+                }
 
                 if (_stream != null)
                 {

@@ -99,6 +99,14 @@ namespace PdfiumViewer
             }
         }
 
+        //public static int FPDF_HasXFAField(IntPtr document, ref int docType)
+        //{
+        //    lock (LockString)
+        //    {
+        //        return Imports.FPDF_HasXFAField(document, ref docType);
+        //    }
+        //}
+
         public static int FPDF_LoadXFA(IntPtr document)
         {
             lock (LockString)
@@ -718,6 +726,9 @@ namespace PdfiumViewer
             [DllImport("pdfium.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern FPDF_FORMTYPES FPDF_GetFormType(IntPtr document);
 
+            //[DllImport("pdfium.dll", CallingConvention = CallingConvention.Cdecl)]
+            //public static extern int FPDF_HasXFAField(IntPtr document, ref int docType);
+
             [DllImport("pdfium.dll", CallingConvention = CallingConvention.Cdecl)]
             public static extern int FPDF_LoadXFA(IntPtr document);
             
@@ -1025,6 +1036,8 @@ namespace PdfiumViewer
             private IntPtr FFI_PutRequestURL;
 
             private IntPtr FFI_OnFocusChange;
+
+            private IntPtr FFI_DoURIActionWithKeyboardModifier;
         }
 
         public enum FPDF_UNSP
@@ -1118,6 +1131,13 @@ namespace PdfiumViewer
             FORMTYPE_ACRO_FORM = 1, // Forms are specified using AcroForm spec
             FORMTYPE_XFA_FULL = 2,  // Forms are specified using entire XFA spec
             FORMTYPE_XFA_FOREGROUND = 3  // Forms are specified using the XFAF subset of XFA spec 
+        }
+
+        public enum FPDF_DOCYPES
+        {
+            DOCTYPE_PDF = 0,          // Normal pdf Document
+            DOCTYPE_DYNAMIC_XFA,  // Dynamic xfa Document Type
+            DOCTYPE_STATIC_XFA   // Static xfa Document Type
         }
 
         [StructLayout(LayoutKind.Sequential)]
