@@ -23,15 +23,6 @@ namespace PdfiumViewer
 
         private PdfLibrary()
         {
-            //https://pdfium.googlesource.com/pdfium/+/refs/heads/main/samples/simple_no_v8.c
-            //https://pdfium.googlesource.com/pdfium/+/refs/heads/main/samples/simple_with_v8.cc
-
-            //try
-            //{
-            //    NativeMethods.FPDF_InitEmbeddedLibraries();
-            //}
-            //catch { } 
-
             NativeMethods.FPDF_InitLibrary();
         }
 

@@ -131,6 +131,7 @@ namespace PdfiumViewer
             this._renderer.Rotation = PdfiumViewer.PdfRotation.Rotate0;
             this._renderer.ZoomMode = PdfiumViewer.PdfViewerZoomMode.FitHeight;
             this._renderer.LinkClick += new PdfiumViewer.LinkClickEventHandler(this._renderer_LinkClick);
+            this._renderer.ZoomChanged += new System.EventHandler(this._renderer_ZoomChanged);
             this._renderer.DisplayRectangleChanged += new System.EventHandler(this._renderer_DisplayRectangleChanged);
             // 
             // PdfViewer

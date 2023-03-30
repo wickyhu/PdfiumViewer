@@ -102,6 +102,16 @@ namespace PdfiumViewer
             }
         }
 
+        public event EventHandler ZoomChanged;
+
+        protected virtual void OnZoomChanged(EventArgs e)
+        {
+            var ev = ZoomChanged;
+
+            if (ev != null)
+                ev(this, e);
+        }
+
         public event EventHandler DisplayRectangleChanged;
 
         protected virtual void OnDisplayRectangleChanged(EventArgs e)
@@ -368,6 +378,11 @@ namespace PdfiumViewer
         private void _renderer_DisplayRectangleChanged(object sender, EventArgs e)
         {
             OnDisplayRectangleChanged(e);
+        }
+
+        private void _renderer_ZoomChanged(object sender, EventArgs e)
+        {
+            OnZoomChanged(e);
         }
     }
 }

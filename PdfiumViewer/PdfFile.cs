@@ -163,6 +163,8 @@ namespace PdfiumViewer
         {
             //refer to sample below
             //https://pdfium.googlesource.com/pdfium/+/master/samples/pdfium_test.cc
+            //https://pdfium.googlesource.com/pdfium/+/refs/heads/main/samples/simple_no_v8.c
+            //https://pdfium.googlesource.com/pdfium/+/refs/heads/main/samples/simple_with_v8.cc
 
             _document = document;
 
