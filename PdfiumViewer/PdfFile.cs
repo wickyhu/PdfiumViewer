@@ -171,40 +171,41 @@ namespace PdfiumViewer
             NativeMethods.FPDF_GetDocPermissions(_document);
 
             _formFillInfo = new NativeMethods.FPDF_FORMFILLINFO();
-            _formFillInfoHandle = GCHandle.Alloc(_formFillInfo, GCHandleType.Pinned);
+            _formFillInfoHandle = GCHandle.Alloc(_formFillInfo, GCHandleType.Pinned);            
+
+            _formType = NativeMethods.FPDF_GetFormType(_document);
 
             // Depending on whether XFA support is built into the PDFium library, the version
             // needs to be 1 or 2. We don't really care, so we just try one or the other.
-            //for (int i = 1; i <= 2; i++)
-            //{
-            //    _formCallbacks.version = i;
 
-            //    _form = NativeMethods.FPDFDOC_InitFormFillEnvironment(_document, _formCallbacks);
-            //    if (_form != IntPtr.Zero)
-            //        break;
-            //}
-
-            _formType = NativeMethods.FPDF_GetFormType(_document);
-            if (IsXfaForm)
+            for (int i = 1; i <= 2; i++)
+            //for (int i = 2; i >= 1; i--)
             {
-                _formFillInfo.version = 2;
-                _formFillInfo.xfa_disabled = 0;
+                _formFillInfo.version = i;
 
-                _jsPlatForm = new NativeMethods.IPDF_JSPLATFORM();
-                _jsPlatForm.version = 2;
-                _jsPlatFormHandle = GCHandle.Alloc(_jsPlatForm, GCHandleType.Pinned);
-                _formFillInfo.m_pJsPlatform = GCHandle.ToIntPtr(_jsPlatFormHandle);
-            }
-            else
-            {
-                _formFillInfo.version = 1;
-                _formFillInfo.xfa_disabled = 1;
-            }
-            _form = NativeMethods.FPDFDOC_InitFormFillEnvironment(_document, _formFillInfo);
+                if (i == 2)
+                {
+                    _formFillInfo.xfa_disabled = 0;
+
+                    _jsPlatForm = new NativeMethods.IPDF_JSPLATFORM();
+                    _jsPlatForm.version = 2;
+                    _jsPlatFormHandle = GCHandle.Alloc(_jsPlatForm, GCHandleType.Pinned);
+                    _formFillInfo.m_pJsPlatform = GCHandle.ToIntPtr(_jsPlatFormHandle);
+                }
+                else
+                {
+                    _formFillInfo.xfa_disabled = 1;
+                }
+
+                _form = NativeMethods.FPDFDOC_InitFormFillEnvironment(_document, _formFillInfo);
+                if (_form != IntPtr.Zero)
+                    break;
+            }            
 
             //int docType = (int)FPDF_DOCYPES.DOCTYPE_PDF;
             //if (NativeMethods.FPDF_HasXFAField(_document, ref docType) > 0 && docType != (int)FPDF_DOCYPES.DOCTYPE_PDF)
-            if(IsXfaForm)
+
+            if(IsXfaForm && _formFillInfo.version == 2)
             {
                 var result = NativeMethods.FPDF_LoadXFA(_document);
             }
